@@ -1,0 +1,13 @@
+variable "region_azs" {}
+variable "num_public_subnets" {}
+variable "num_private_subnets" {}
+variable "cluster_name" {}
+variable "cluster_version" {}
+variable "vpc_cidr" {}
+variable "public_key" {}
+variable "helmfile_version" {}
+variable "kubectl_version" {}
+variable "bastion_instance_type" {}
+variable "project_name" {}
+variable "common_tags" {}
+variable "nodegroup_ami_type" {}

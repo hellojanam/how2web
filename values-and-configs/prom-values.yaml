@@ -1,0 +1,6 @@
+#server:
+  #service:
+    #enabled: false
+alertmanager:
+  extraArgs:
+    cluster.advertise-address: "[$(POD_IP)]:9093"
