@@ -157,6 +157,8 @@ spec:
               memory: 600Mi
           command:
             - ./cluster-autoscaler
+            - --scan-interval=5s
+            - --scale-down-unneeded-time=40s            
             - --v=4
             - --stderrthreshold=info
             - --cloud-provider=aws
