@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: locust
-        image: iamjanam/locust:v6
+        image: iamjanam/locust:v7
         env:
           - name: LOCUST_HOST
             value: "http://how2web.default.svc.cluster.local"           
