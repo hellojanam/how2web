@@ -45,7 +45,7 @@ class MyLocustTest(HttpUser):
     def get_published_tutorials(self):
         self.client.get("/api/tutorials/published")
 
-    @task(2)  # Task to periodically delete tutorials
+    @task(3)  # Task to periodically delete tutorials
     def delete_tutorial(self):
         if self.tutorial_ids:
             tutorial_id = random.choice(self.tutorial_ids)
