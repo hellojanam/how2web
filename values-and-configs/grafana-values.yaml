@@ -1,0 +1,10 @@
+service:
+  enabled: true
+  type: LoadBalancer
+persistence:
+  type: pvc
+  enabled: true
+  storageClassName: gp2
+  accessModes:
+    - ReadWriteOnce
+  size: 20Gi
