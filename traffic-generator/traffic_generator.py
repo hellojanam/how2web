@@ -1,58 +1,82 @@
 from locust import HttpUser, task, between
 import os
+import json
 import random
 
-class MyLocustTest(HttpUser):
-    wait_time = between(0.1, 0.3)  # Reduced wait time to generate more traffic
-    tutorial_ids = []
+
+class DynamicLocustTest(HttpUser):
+    wait_time = between(0.1, 0.3)  # Default wait time
+    tutorial_ids = []  # Used for dynamic endpoint placeholders like {id}
+    dynamic_tasks = []
 
     def on_start(self):
-        self.host = os.getenv("LOCUST_HOST", "http://localhost:8080")
+        """
+        Load configuration and initialize before the Locust tasks start.
+        """
+        # Load host and configuration file from environment variables
+        self.host = os.getenv("LOCUST_HOST", "http://google.com")
+        config_file = os.getenv("LOCUST_CONFIG_FILE", "config.json")
 
-    @task(3)  # More frequent creation of tutorials
-    def create_tutorial(self):
-        response = self.client.post("/api/tutorials", json={
-            "title": f"Test Tutorial {random.randint(1, 10000)}",
-            "description": "Test Description",
-            "published": True
-        })
-        if response.status_code == 201:
-            # Store the created tutorial ID for future operations
-            new_tutorial = response.json()
-            self.tutorial_ids.append(new_tutorial['id'])
+        # Load configuration dynamically
+        try:
+            if os.path.exists(config_file):
+                with open(config_file, 'r') as f:
+                    config = json.load(f)
+                    self.dynamic_tasks = config.get("tasks", [])
+                    print(f"Loaded {len(self.dynamic_tasks)} tasks from {config_file}")
+            else:
+                print(f"Configuration file {config_file} not found.")
+                self.dynamic_tasks = []
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON from {config_file}: {e}")
+            self.dynamic_tasks = []
 
-    @task(4)  # Increase frequency of reading tutorials
-    def get_tutorial_by_id(self):
-        if self.tutorial_ids:
-            tutorial_id = random.choice(self.tutorial_ids)
-            self.client.get(f"/api/tutorials/{tutorial_id}")
+    def execute_dynamic_task(self, task_config):
+        """
+        Executes a single dynamic task based on the provided configuration.
+        """
+        try:
+            method = task_config.get("method", "GET").upper()
+            endpoint = task_config.get("endpoint", "/")
+            body = task_config.get("body", {})
+            frequency = task_config.get("frequency", 1)
 
-    @task(3)  # Frequent update tasks
-    def update_tutorial(self):
-        if self.tutorial_ids:
-            tutorial_id = random.choice(self.tutorial_ids)
-            self.client.put(f"/api/tutorials/{tutorial_id}", json={
-                "title": f"Updated Tutorial {random.randint(1, 10000)}",
-                "description": "Updated Description",
-                "published": True
-            })
+            # Validate endpoint
+            if not endpoint or not isinstance(endpoint, str):
+                print(f"Invalid or missing endpoint in task: {task_config}")
+                return  # Skip this task
 
-    @task(2)  # Get all tutorials task to vary the load
-    def get_all_tutorials(self):
-        self.client.get("/api/tutorials")
+            # Replace placeholders in the endpoint (e.g., {id})
+            if "{id}" in endpoint and self.tutorial_ids:
+                endpoint = endpoint.replace("{id}", str(random.choice(self.tutorial_ids)))
 
-    @task(2)  # Get all published tutorials
-    def get_published_tutorials(self):
-        self.client.get("/api/tutorials/published")
+            # Randomized execution based on frequency
+            if random.randint(1, frequency) == 1:
+                if method == "GET":
+                    self.client.get(endpoint)
+                elif method == "POST":
+                    self.client.post(endpoint, json=body)
+                elif method == "PUT":
+                    self.client.put(endpoint, json=body)
+                elif method == "DELETE":
+                    self.client.delete(endpoint)
+                else:
+                    print(f"Unsupported HTTP method: {method} in task: {task_config}")
+        except Exception as e:
+            print(f"Error executing task {task_config}: {e}")
 
-    @task(3)  # Task to periodically delete tutorials
-    def delete_tutorial(self):
-        if self.tutorial_ids:
-            tutorial_id = random.choice(self.tutorial_ids)
-            response = self.client.delete(f"/api/tutorials/{tutorial_id}")
-            if response.status_code == 200 or response.status_code == 204:
-                # Remove the ID from the list after successful deletion
-                self.tutorial_ids.remove(tutorial_id)
+    @task
+    def execute_dynamic_tasks(self):
+        """
+        Iterate through all dynamically configured tasks and execute them.
+        """
+        if not self.dynamic_tasks:
+            print("No tasks configured. Skipping execution.")
+            return
+
+        for task_config in self.dynamic_tasks:
+            self.execute_dynamic_task(task_config)
+
 
 # Command to run Locust with more workers to handle higher RPM:
 # locust -f mylocustfile.py --host http://target-url.com --users 5000 --spawn-rate 1000 --headless --run-time 30m

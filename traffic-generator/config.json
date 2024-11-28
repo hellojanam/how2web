@@ -1,0 +1,34 @@
+{
+    "tasks": [
+        {
+            "method": "POST",
+            "endpoint": "/api/tutorials",
+            "body": {
+                "title": "Dynamic Tutorial",
+                "description": "Generated dynamically",
+                "published": true
+            },
+            "frequency": 3
+        },
+        {
+            "method": "GET",
+            "endpoint": "/api/tutorials",
+            "frequency": 4
+        },
+        {
+            "method": "PUT",
+            "endpoint": "/api/tutorials/{id}",
+            "body": {
+                "title": "Updated Dynamic Tutorial",
+                "description": "Updated dynamically",
+                "published": true
+            },
+            "frequency": 2
+        },
+        {
+            "method": "DELETE",
+            "endpoint": "/api/tutorials/{id}",
+            "frequency": 1
+        }
+    ]
+}
