@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: locust-config
+data:
+  config.json: |
+    {
+        "tasks": [
+            {
+                "method": "POST",
+                "endpoint": "/api/tutorials",
+                "body": {
+                    "title": "Dynamic Tutorial",
+                    "description": "Generated dynamically",
+                    "published": true
+                },
+                "frequency": 3
+            },
+            {
+                "method": "GET",
+                "endpoint": "/api/tutorials",
+                "frequency": 4
+            },
+            {
+                "method": "DELETE",
+                "endpoint": "/api/tutorials/{id}",
+                "frequency": 1
+            }
+        ]
+    }

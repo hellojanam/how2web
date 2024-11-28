@@ -19,9 +19,21 @@ spec:
         image: iamjanam/locust:v7
         env:
           - name: LOCUST_HOST
-            value: "http://how2web.default.svc.cluster.local"           
+            value: "http://how2web.default.svc.cluster.local"
+          - name: LOCUST_CONFIG_FILE
+            value: "/etc/locust/config.json" # Path to the config file
+          - name: LOCUST_USERS
+            value: "5000" # Number of concurrent users
+          - name: LOCUST_SPAWN_RATE
+            value: "1000" # Users spawned per second
+          - name: LOCUST_RUN_TIME
+            value: "30m" # Test duration
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/locust # Mount the configuration file
+            readOnly: true
         ports:
-        - containerPort: 80     
+        - containerPort: 8089 # Locust web interface default port
         resources:
           requests:
             memory: "256Mi"
@@ -29,4 +41,7 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
-
+      volumes:
+      - name: config-volume
+        configMap:
+          name: locust-config # ConfigMap holding the configuration file
