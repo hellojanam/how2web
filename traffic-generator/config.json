@@ -1,6 +1,7 @@
 {
     "tasks": [
         {
+            "name": "Create New Tutorial",
             "method": "POST",
             "endpoint": "/api/tutorials",
             "body": {
@@ -11,11 +12,13 @@
             "frequency": 3
         },
         {
+            "name": "Fetch All Tutorials",
             "method": "GET",
             "endpoint": "/api/tutorials",
             "frequency": 4
         },
         {
+            "name": "Update Existing Tutorial",
             "method": "PUT",
             "endpoint": "/api/tutorials/{id}",
             "body": {
@@ -26,6 +29,7 @@
             "frequency": 2
         },
         {
+            "name": "Delete Tutorial",
             "method": "DELETE",
             "endpoint": "/api/tutorials/{id}",
             "frequency": 1

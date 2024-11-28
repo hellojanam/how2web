@@ -2,12 +2,14 @@ from locust import HttpUser, task, between
 import os
 import json
 import random
+from collections import defaultdict
 
 
 class DynamicLocustTest(HttpUser):
     wait_time = between(0.1, 0.3)  # Default wait time
     tutorial_ids = []  # Used for dynamic endpoint placeholders like {id}
     dynamic_tasks = []
+    task_execution_count = defaultdict(int)  # Track the execution count for each task
 
     def on_start(self):
         """
@@ -23,7 +25,6 @@ class DynamicLocustTest(HttpUser):
                 with open(config_file, 'r') as f:
                     config = json.load(f)
                     self.dynamic_tasks = config.get("tasks", [])
-                    print(f"Loaded {len(self.dynamic_tasks)} tasks from {config_file}")
             else:
                 print(f"Configuration file {config_file} not found.")
                 self.dynamic_tasks = []
@@ -36,6 +37,7 @@ class DynamicLocustTest(HttpUser):
         Executes a single dynamic task based on the provided configuration.
         """
         try:
+            name = task_config.get("name", "Unnamed Task")
             method = task_config.get("method", "GET").upper()
             endpoint = task_config.get("endpoint", "/")
             body = task_config.get("body", {})
@@ -52,6 +54,8 @@ class DynamicLocustTest(HttpUser):
 
             # Randomized execution based on frequency
             if random.randint(1, frequency) == 1:
+                self.task_execution_count[name] += 1  # Increment task count
+
                 if method == "GET":
                     self.client.get(endpoint)
                 elif method == "POST":
@@ -77,6 +81,10 @@ class DynamicLocustTest(HttpUser):
         for task_config in self.dynamic_tasks:
             self.execute_dynamic_task(task_config)
 
+        # Log total task execution count after the cycle
+        print("Task Execution Summary:")
+        for task_name, count in self.task_execution_count.items():
+            print(f"  {task_name}: {count} executions")
 
 # Command to run Locust with more workers to handle higher RPM:
-# locust -f mylocustfile.py --host http://target-url.com --users 5000 --spawn-rate 1000 --headless --run-time 30m
+# locust -f traffic_generator.py --host http://google.com --users 5000 --spawn-rate 1000 --headless --run-time 30m
