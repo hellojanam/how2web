@@ -1,13 +1,14 @@
+# Use a minimal base Python image
 FROM python:3.11-slim
 
-# Install required packages
-RUN pip install locust
+# Set a working directory
+WORKDIR /app
 
-# Copy your locustfile.py into the container
-COPY traffic_generator.py /locustfile.py
+# Install Locust
+RUN pip install --no-cache-dir locust
 
-# Set environment variables
-#ENV LOCUST_HOST=http://how2web.default.svc.cluster.local
+# Copy the Locust file into the container
+COPY traffic_generator.py /app/locustfile.py
 
-# Command to run Locust
-CMD ["locust", "-f", "/locustfile.py", "--headless", "-u", "500000", "-r", "100", "--run-time", "30m"]
+# Default command to run Locust
+CMD ["sh", "-c", "locust -f /app/locustfile.py --headless -u $LOCUST_USERS -r $LOCUST_SPAWN_RATE --run-time $LOCUST_RUN_TIME --host $LOCUST_HOST"]
